@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Header } from '@/components/Header';
-import { ProductCard } from '@/components/ProductCard';
+import { Header } from '@/components/layout/Header';
+import { ProductCard } from '@/components/product/ProductCard';
 import { products, Product } from '@/lib/products';
 
 export default function Home() {

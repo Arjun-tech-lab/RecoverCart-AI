@@ -1,12 +1,25 @@
 'use client';
 
-import { Header } from '@/components/Header';
-import { products } from '@/lib/products';
-import { useCartStore } from '@/lib/store';
-import Image from 'next/image';
-import { Star, ShoppingCart, Check, Heart } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+
+import { ProductGrid } from '@/components/product/ProductGrid';
+
+import { products } from '@/lib/products';
+import { useCartStore } from '@/lib/store';
+
+import {
+  Star,
+  ShoppingCart,
+  Check,
+  Heart,
+  Minus,
+  Plus,
+} from 'lucide-react';
 
 interface ProductPageProps {
   params: {
@@ -14,61 +27,99 @@ interface ProductPageProps {
   };
 }
 
-export default function ProductPage({ params }: ProductPageProps) {
+export default function ProductPage({
+  params,
+}: ProductPageProps) {
   const product = products.find((p) => p.id === params.id);
-  const [quantity, setQuantity] = useState(1);
-  const [isAdded, setIsAdded] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+
   const addItem = useCartStore((state) => state.addItem);
+
+  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+  const [favorite, setFavorite] = useState(false);
 
   if (!product) {
     return (
       <>
         <Header />
-        <main className="bg-white min-h-screen flex items-center justify-center">
+
+        <main className="min-h-screen bg-white flex items-center justify-center px-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Product not found</h1>
-            <p className="text-gray-600 mb-4">The product you&apos;re looking for doesn&apos;t exist.</p>
-            <Link href="/" className="text-gray-900 underline hover:text-gray-700">
-              Back to shop
+            <h1 className="text-3xl font-semibold text-gray-900">
+              Product not found
+            </h1>
+
+            <p className="text-gray-500 mt-3">
+              The product you are looking for does not exist.
+            </p>
+
+            <Link
+              href="/"
+              className="inline-flex mt-6 rounded-xl bg-black px-6 py-3 text-white font-medium hover:bg-gray-800 transition"
+            >
+              Back to Shop
             </Link>
           </div>
         </main>
+
+        <Footer />
       </>
     );
   }
+
+  const relatedProducts = products
+    .filter(
+      (p) =>
+        p.id !== product.id &&
+        p.category === product.category
+    )
+    .slice(0, 4);
 
   const handleAddToCart = () => {
     addItem({
       id: product.id,
       name: product.name,
       price: product.price,
-      quantity,
       image: product.image,
+      quantity,
     });
-    setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 2000);
+
+    setAdded(true);
+
+    setTimeout(() => {
+      setAdded(false);
+    }, 1500);
   };
 
   return (
     <>
       <Header />
-      <main className="bg-white">
+
+      <main className="bg-white min-h-screen">
         {/* Breadcrumb */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
-            Home
-          </Link>
-          <span className="text-gray-400 mx-2">/</span>
-          <span className="text-sm text-gray-900">{product.name}</span>
+        <div className="max-w-7xl mx-auto px-4 pt-6">
+          <div className="text-sm text-gray-500">
+            <Link
+              href="/"
+              className="hover:text-gray-900 transition"
+            >
+              Home
+            </Link>
+
+            <span className="mx-2">/</span>
+
+            <span className="text-gray-900">
+              {product.name}
+            </span>
+          </div>
         </div>
 
         {/* Product Section */}
-        <section className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Product Image */}
-            <div className="flex items-center justify-center">
-              <div className="relative w-full aspect-square overflow-hidden rounded-lg bg-gray-100">
+        <section className="max-w-7xl mx-auto px-4 py-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Image */}
+            <div>
+              <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100">
                 <Image
                   src={product.image}
                   alt={product.name}
@@ -78,155 +129,186 @@ export default function ProductPage({ params }: ProductPageProps) {
               </div>
             </div>
 
-            {/* Product Details */}
-            <div className="flex flex-col justify-start">
-              <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">{product.category}</p>
-              
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 text-balance">
+            {/* Details */}
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-4">
+                {product.category}
+              </p>
+
+              <h1 className="text-4xl font-semibold text-gray-900 leading-tight">
                 {product.name}
               </h1>
 
               {/* Rating */}
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center gap-1">
+              <div className="flex items-center gap-3 mt-5">
+                <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
                       className={`w-4 h-4 ${
-                        i < Math.floor(product.rating)
+                        i <
+                        Math.floor(product.rating)
                           ? 'fill-amber-400 text-amber-400'
                           : 'text-gray-300'
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm text-gray-600">
-                  {product.rating} ({product.reviews} reviews)
+
+                <span className="text-sm text-gray-500">
+                  {product.rating} ({product.reviews}{' '}
+                  reviews)
                 </span>
               </div>
 
               {/* Price */}
-              <div className="mb-6">
-                <div className="text-3xl font-bold text-gray-900">${product.price.toFixed(2)}</div>
-                <p className="text-sm text-gray-600 mt-1">
+              <div className="mt-6">
+                <p className="text-4xl font-bold text-gray-900">
+                  ${product.price.toFixed(2)}
+                </p>
+
+                <p className="text-sm mt-2">
                   {product.inStock ? (
-                    <span className="text-green-600 font-medium">In Stock</span>
+                    <span className="text-green-600 font-medium">
+                      In Stock
+                    </span>
                   ) : (
-                    <span className="text-red-600 font-medium">Out of Stock</span>
+                    <span className="text-red-500 font-medium">
+                      Out of Stock
+                    </span>
                   )}
                 </p>
               </div>
 
               {/* Description */}
-              <p className="text-gray-700 mb-8 leading-relaxed">{product.description}</p>
+              <p className="mt-6 text-gray-600 leading-7">
+                {product.description}
+              </p>
 
-              {/* Quantity and Add to Cart */}
-              <div className="flex flex-col gap-4 mb-8">
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-gray-900">Quantity:</label>
-                  <div className="flex items-center gap-3 border border-gray-300 rounded-lg p-1">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="px-3 py-1 text-gray-600 hover:text-gray-900"
-                    >
-                      −
-                    </button>
-                    <span className="text-gray-900 font-medium w-8 text-center">{quantity}</span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="px-3 py-1 text-gray-600 hover:text-gray-900"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
+              {/* Quantity */}
+              <div className="mt-8">
+                <p className="text-sm font-medium text-gray-900 mb-3">
+                  Quantity
+                </p>
 
-                <div className="flex gap-3">
+                <div className="inline-flex items-center gap-4 rounded-xl border border-gray-200 px-4 py-3">
                   <button
-                    onClick={handleAddToCart}
-                    disabled={!product.inStock}
-                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors ${
-                      isAdded
-                        ? 'bg-green-600 text-white'
-                        : product.inStock
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                    }`}
+                    onClick={() =>
+                      setQuantity(
+                        Math.max(1, quantity - 1)
+                      )
+                    }
                   >
-                    {isAdded ? (
-                      <>
-                        <Check className="w-5 h-5" />
-                        Added to cart
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="w-5 h-5" />
-                        Add to Cart
-                      </>
-                    )}
+                    <Minus className="w-4 h-4 text-gray-700" />
                   </button>
+
+                  <span className="w-6 text-center font-medium text-gray-900">
+                    {quantity}
+                  </span>
+
                   <button
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    className={`px-6 py-3 rounded-lg border transition-colors ${
-                      isFavorite
-                        ? 'bg-gray-100 border-gray-300 text-gray-900'
-                        : 'bg-white border-gray-300 text-gray-600 hover:border-gray-900'
-                    }`}
+                    onClick={() =>
+                      setQuantity(quantity + 1)
+                    }
                   >
-                    <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
+                    <Plus className="w-4 h-4 text-gray-700" />
                   </button>
                 </div>
               </div>
 
-              {/* Additional Info */}
-              <div className="border-t border-gray-200 pt-8">
-                <div className="space-y-4 text-sm">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Free Shipping</h3>
-                    <p className="text-gray-600">On orders over $50. We ship within 1-2 business days.</p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">30-Day Returns</h3>
-                    <p className="text-gray-600">Not satisfied? Return your item for a full refund, no questions asked.</p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Warranty</h3>
-                    <p className="text-gray-600">All products come with a 1-year manufacturer warranty.</p>
-                  </div>
+              {/* Actions */}
+              <div className="mt-8 flex gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!product.inStock}
+                  className={`flex-1 rounded-xl py-4 font-medium transition flex items-center justify-center gap-2 ${
+                    added
+                      ? 'bg-green-600 text-white'
+                      : 'bg-black text-white hover:bg-gray-800'
+                  }`}
+                >
+                  {added ? (
+                    <>
+                      <Check className="w-5 h-5" />
+                      Added
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-5 h-5" />
+                      Add to Cart
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() =>
+                    setFavorite(!favorite)
+                  }
+                  className="w-14 rounded-xl border border-gray-300 flex items-center justify-center hover:border-black transition"
+                >
+                  <Heart
+                    className={`w-5 h-5 ${
+                      favorite
+                        ? 'fill-black text-black'
+                        : 'text-gray-600'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Trust Section */}
+              <div className="mt-10 border-t border-gray-200 pt-8 space-y-5">
+                <div>
+                  <h3 className="font-medium text-gray-900">
+                    Free Shipping
+                  </h3>
+
+                  <p className="text-sm text-gray-500 mt-1">
+                    On orders above $50.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-medium text-gray-900">
+                    30-Day Returns
+                  </h3>
+
+                  <p className="text-sm text-gray-500 mt-1">
+                    Hassle-free returns.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-medium text-gray-900">
+                    1-Year Warranty
+                  </h3>
+
+                  <p className="text-sm text-gray-500 mt-1">
+                    Manufacturer warranty included.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Related Products */}
-        <section className="max-w-7xl mx-auto px-4 py-16 border-t border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">You might also like</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products
-              .filter((p) => p.id !== product.id && p.category === product.category)
-              .slice(0, 4)
-              .map((relatedProduct) => (
-                <Link key={relatedProduct.id} href={`/products/${relatedProduct.id}`}>
-                  <div className="group flex flex-col bg-white rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full">
-                    <div className="relative w-full aspect-square overflow-hidden bg-gray-100">
-                      <Image
-                        src={relatedProduct.image}
-                        alt={relatedProduct.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-sm font-semibold text-gray-900">{relatedProduct.name}</h3>
-                      <p className="text-lg font-bold text-gray-900 mt-2">${relatedProduct.price.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-          </div>
-        </section>
+        {/* Related */}
+        {relatedProducts.length > 0 && (
+          <section className="border-t border-gray-200 py-16">
+            <div className="max-w-7xl mx-auto px-4">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-8">
+                You Might Also Like
+              </h2>
+
+              <ProductGrid
+                products={relatedProducts}
+              />
+            </div>
+          </section>
+        )}
       </main>
+
+      <Footer />
     </>
   );
 }

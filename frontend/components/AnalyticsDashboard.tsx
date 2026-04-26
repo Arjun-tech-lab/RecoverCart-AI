@@ -82,32 +82,6 @@ export function AnalyticsDashboard() {
               </div>
             </div>
 
-            {/* Hesitation Score */}
-            <div className={`p-4 rounded-lg border-2 ${hesitationInfo.bg}`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-sm font-semibold ${hesitationInfo.color}`}>
-                  Hesitation Score
-                </span>
-                <span className={`text-2xl font-bold ${hesitationInfo.color}`}>
-                  {analytics.hesitationScore.toFixed(0)}%
-                </span>
-              </div>
-              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    analytics.hesitationScore < 20
-                      ? 'bg-green-600'
-                      : analytics.hesitationScore < 50
-                        ? 'bg-amber-600'
-                        : 'bg-red-600'
-                  }`}
-                  style={{ width: `${Math.min(analytics.hesitationScore, 100)}%` }}
-                />
-              </div>
-              <p className={`text-xs mt-2 ${hesitationInfo.color}`}>
-                {hesitationInfo.level} hesitation detected
-              </p>
-            </div>
 
             {/* Interaction Metrics */}
             <div className="grid grid-cols-2 gap-3">
