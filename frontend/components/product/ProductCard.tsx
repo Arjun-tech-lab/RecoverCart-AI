@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Star, ShoppingCart } from 'lucide-react';
 import { Product } from '@/lib/products';
 import { useCartStore } from '@/lib/store';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +13,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const { format } = useCurrency();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
 
           <div className="mt-auto flex items-center justify-between">
-            <div className="text-lg font-semibold text-gray-900">${product.price.toFixed(2)}</div>
+            <div className="text-lg font-semibold text-gray-900">{format(product.price)}</div>
             <button
               onClick={handleAddToCart}
               className="p-2 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition-colors"

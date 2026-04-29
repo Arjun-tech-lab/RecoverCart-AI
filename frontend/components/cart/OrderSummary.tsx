@@ -3,115 +3,22 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
+import { useCurrency } from '@/lib/useCurrency';
 
-interface OrderSummaryProps {
-  recoveryData?: any;
-  shippingOption?: 'standard' | 'express' | null;
-}
-
-export function OrderSummary({
-  recoveryData,
-  shippingOption,
-}: OrderSummaryProps) {
+export function OrderSummary() {
   const items = useCartStore(
     (state) => state.items
   );
-  console.log("ORDER SUMMARY DATA", recoveryData);
+  const getOrderTotals = useCartStore((state) => state.getOrderTotals);
+  const recoveryData = useCartStore((state) => state.recoveryData);
+  const { format } = useCurrency();
 
-  /* ---------------- SUBTOTAL ---------------- */
-
-  const subtotal = items.reduce(
-    (sum, item) =>
-      sum +
-      item.price *
-        item.quantity,
-    0
-  );
-
-  /* ---------------- OFFER ---------------- */
-
-  const offer =
-    recoveryData?.offer ||
-    null;
-
-  let discount = 0;
-
-  /* ---------------- SHIPPING ---------------- */
-
-  let shipping = 99; // default standard
-
-  if (
-    shippingOption ===
-    'standard'
-  ) {
-    shipping = 99;
-  }
-
-  if (
-    shippingOption ===
-    'express'
-  ) {
-    shipping = 199;
-  }
-
-  /* free shipping over 5000 */
-  if (subtotal >= 5000) {
-    shipping = 0;
-  }
-
-  /* ---------------- APPLY OFFERS ---------------- */
-
-  /* ---------------- APPLY OFFERS ---------------- */
-
-if (
-  offer?.type === 'discount_percent' ||
-  offer?.type === 'discount'
-) {
-  const percent =
-    Number(
-      offer.value ||
-      offer.percent ||
-      0
-    );
-
-  discount =
-    subtotal *
-    (percent / 100);
-}
-
-if (
-  offer?.type === 'flat_discount'
-) {
-  discount = Number(
-    offer.value || 0
-  );
-}
-
-if (
-  offer?.type === 'free_shipping'
-) {
-  shipping = 0;
-}
-  /* ---------------- FINAL PRICE ---------------- */
-
-  const finalSubtotal =
-    subtotal - discount;
-
-  const tax =
-    finalSubtotal * 0.05;
-
-  const total =
-    finalSubtotal +
-    shipping +
-    tax;
+  const { subtotal, discount, shipping, tax, total } = getOrderTotals();
 
   /* ---------------- LABEL ---------------- */
 
   const offerLabel =
-    offer?.label ||
-    recoveryData?.offer
-      ?.label ||
-    '';
+    recoveryData?.offer?.label || '';
 
   return (
     <div className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-6">
@@ -131,10 +38,7 @@ if (
           </span>
 
           <span className="font-medium text-gray-900">
-            ₹
-            {subtotal.toFixed(
-              0
-            )}
+            {format(subtotal)}
           </span>
         </div>
 
@@ -146,10 +50,7 @@ if (
             </span>
 
             <span>
-              -₹
-              {discount.toFixed(
-                0
-              )}
+              -{format(discount)}
             </span>
           </div>
         )}
@@ -163,7 +64,7 @@ if (
           <span className="font-medium text-gray-900">
             {shipping === 0
               ? 'Free'
-              : `₹${shipping}`}
+              : format(shipping)}
           </span>
         </div>
 
@@ -174,10 +75,7 @@ if (
           </span>
 
           <span className="font-medium text-gray-900">
-            ₹
-            {tax.toFixed(
-              0
-            )}
+            {format(tax)}
           </span>
         </div>
 
@@ -190,10 +88,7 @@ if (
         </span>
 
         <span className="text-2xl font-bold text-gray-900">
-          ₹
-          {total.toFixed(
-            0
-          )}
+          {format(total)}
         </span>
       </div>
 

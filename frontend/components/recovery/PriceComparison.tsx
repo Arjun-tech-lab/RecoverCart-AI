@@ -1,5 +1,7 @@
 // components/recovery/PriceComparison.tsx
 
+import { useCurrency } from '@/lib/useCurrency';
+
 'use client';
 
 interface PriceComparisonProps {
@@ -12,6 +14,7 @@ export function PriceComparison({
   marketPrice = 5499,
 }: PriceComparisonProps) {
   const savings = marketPrice - ourPrice;
+  const { format } = useCurrency();
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5">
@@ -23,14 +26,14 @@ export function PriceComparison({
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-500">Market Average</span>
           <span className="text-gray-900 font-medium">
-            ₹{marketPrice}
+            {format(marketPrice)}
           </span>
         </div>
 
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-500">Our Price</span>
           <span className="text-gray-900 font-semibold">
-            ₹{ourPrice}
+            {format(ourPrice)}
           </span>
         </div>
 
@@ -42,7 +45,7 @@ export function PriceComparison({
           </span>
 
           <span className="text-green-600 font-semibold">
-            ₹{savings}
+            {format(savings)}
           </span>
         </div>
       </div>

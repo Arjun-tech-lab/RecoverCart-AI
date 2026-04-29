@@ -17,11 +17,6 @@ import {
   getRecoveryPlan,
 } from '@/services/api';
 
-type ShippingType =
-  | 'standard'
-  | 'express'
-  | null;
-
 export default function CartPage() {
   const items = useCartStore(
     (state) => state.items
@@ -36,15 +31,12 @@ export default function CartPage() {
   const subtotal =
     getTotalPrice();
 
-  /* ---------------- STATE ---------------- */
+  const shippingOption = useCartStore((state) => state.shippingOption);
+  const setShippingOption = useCartStore((state) => state.setShippingOption);
+  const recoveryData = useCartStore((state) => state.recoveryData);
+  const setRecoveryData = useCartStore((state) => state.setRecoveryData);
 
-  const [
-    shippingOption,
-    setShippingOption,
-  ] =
-    useState<ShippingType>(
-      null
-    );
+  /* ---------------- STATE ---------------- */
 
   const [timeOnCart,
     setTimeOnCart] =
@@ -78,11 +70,6 @@ export default function CartPage() {
   const [reason,
     setReason] =
     useState('');
-
-  const [
-    recoveryData,
-    setRecoveryData,
-  ] = useState<any>(null);
 
   const [
     loadingRecovery,
@@ -195,7 +182,7 @@ export default function CartPage() {
   const handleShippingChange =
     (
       option:
-        ShippingType
+        any
     ) => {
       setShippingOption(
         option
@@ -403,6 +390,16 @@ export default function CartPage() {
             null
           );
         }}
+        onAccept={() => {
+          setShowRecoveryModal(
+            false
+          );
+
+          setPopupDismissed(
+            true
+          );
+        }}
+
         hesitationScore={
           hesitationScore
         }

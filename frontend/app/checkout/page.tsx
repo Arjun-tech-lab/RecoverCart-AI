@@ -5,14 +5,16 @@ import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useCartStore } from '@/lib/store';
+import { useCurrency } from '@/lib/useCurrency';
 import { ArrowLeft, Check } from 'lucide-react';
 
 type Step = 'shipping' | 'payment' | 'confirmation';
 
 export default function CheckoutPage() {
   const items = useCartStore((state) => state.items);
-  const getTotalPrice = useCartStore((state) => state.getTotalPrice);
+  const getOrderTotals = useCartStore((state) => state.getOrderTotals);
   const clearCart = useCartStore((state) => state.clearCart);
+  const { format } = useCurrency();
 
   const [step, setStep] = useState<Step>('shipping');
 
@@ -33,10 +35,7 @@ export default function CheckoutPage() {
     cardCvc: '',
   });
 
-  const subtotal = getTotalPrice();
-  const shipping = 5;
-  const tax = (subtotal + shipping) * 0.08;
-  const total = subtotal + shipping + tax;
+  const { subtotal, discount, shipping, tax, total } = getOrderTotals();
 
   if (items.length === 0 && step !== 'confirmation') {
     return (
@@ -330,7 +329,7 @@ export default function CheckoutPage() {
                         </span>
 
                         <span className="text-gray-900 font-medium">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          {format(item.price * item.quantity)}
                         </span>
                       </div>
                     ))}
@@ -339,17 +338,24 @@ export default function CheckoutPage() {
                   <div className="space-y-3 py-5 border-b border-gray-200">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Subtotal</span>
-                      <span>${subtotal.toFixed(2)}</span>
+                      <span>{format(subtotal)}</span>
                     </div>
+
+                    {discount > 0 && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Discount</span>
+                        <span>-{format(discount)}</span>
+                      </div>
+                    )}
 
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Shipping</span>
-                      <span>${shipping.toFixed(2)}</span>
+                      <span>{format(shipping)}</span>
                     </div>
 
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Tax</span>
-                      <span>${tax.toFixed(2)}</span>
+                      <span>{format(tax)}</span>
                     </div>
                   </div>
 
@@ -359,7 +365,7 @@ export default function CheckoutPage() {
                     </span>
 
                     <span className="text-2xl font-bold text-gray-900">
-                      ${total.toFixed(2)}
+                      {format(total)}
                     </span>
                   </div>
                 </div>

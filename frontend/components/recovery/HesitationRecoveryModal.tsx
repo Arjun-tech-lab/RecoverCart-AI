@@ -24,6 +24,7 @@ interface HesitationRecoveryModalProps {
   onReasonSelect?: (
     reason: string
   ) => void | Promise<void>;
+  onAccept?: () => void;
 }
 
 function getSafeValue(value: any) {
@@ -50,6 +51,7 @@ export function HesitationRecoveryModal({
   timeOnCart,
   recoveryData,
   onReasonSelect,
+  onAccept,
 }: HesitationRecoveryModalProps) {
   const [selectedReason, setSelectedReason] =
     useState<string | null>(null);
@@ -375,7 +377,7 @@ export function HesitationRecoveryModal({
           </button>
 
           <button
-            onClick={onClose}
+            onClick={hasRecoveryData && onAccept ? onAccept : onClose}
             disabled={loadingPlan}
             className="rounded-xl bg-black py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
           >

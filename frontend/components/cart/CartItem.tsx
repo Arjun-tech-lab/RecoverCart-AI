@@ -5,6 +5,7 @@
 import Image from 'next/image';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface CartItemProps {
   item: {
@@ -19,6 +20,7 @@ interface CartItemProps {
 export function CartItem({ item }: CartItemProps) {
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const { format } = useCurrency();
 
   const increase = () => {
     updateQuantity(item.id, item.quantity + 1);
@@ -47,7 +49,7 @@ export function CartItem({ item }: CartItemProps) {
         </h3>
 
         <p className="text-lg font-semibold text-gray-900 mt-2">
-          ₹{item.price.toFixed(0)}
+          {format(item.price)}
         </p>
       </div>
 

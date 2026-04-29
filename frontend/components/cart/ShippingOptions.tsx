@@ -2,6 +2,8 @@
 
 'use client';
 
+import { useCurrency } from '@/lib/useCurrency';
+
 interface ShippingOptionsProps {
   selected: 'standard' | 'express' | null;
   onChange: (value: 'standard' | 'express') => void;
@@ -11,6 +13,8 @@ export function ShippingOptions({
   selected,
   onChange,
 }: ShippingOptionsProps) {
+  const { format } = useCurrency();
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-6 mt-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -39,7 +43,7 @@ export function ShippingOptions({
             </div>
 
             <span className="text-sm font-semibold text-gray-900">
-              ₹99
+              {format(99)}
             </span>
           </div>
         </button>
@@ -65,14 +69,14 @@ export function ShippingOptions({
             </div>
 
             <span className="text-sm font-semibold text-gray-900">
-              ₹199
+              {format(199)}
             </span>
           </div>
         </button>
       </div>
 
       <p className="text-xs text-gray-500 mt-4">
-        Free standard shipping on orders above ₹5000
+        Free standard shipping on orders above {format(5000)}
       </p>
     </div>
   );

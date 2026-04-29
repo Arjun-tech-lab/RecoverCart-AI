@@ -11,6 +11,7 @@ import { ProductGrid } from '@/components/product/ProductGrid';
 
 import { products } from '@/lib/products';
 import { useCartStore } from '@/lib/store';
+import { useCurrency } from '@/lib/useCurrency';
 
 import {
   Star,
@@ -33,6 +34,7 @@ export default function ProductPage({
   const product = products.find((p) => p.id === params.id);
 
   const addItem = useCartStore((state) => state.addItem);
+  const { format } = useCurrency();
 
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -164,7 +166,7 @@ export default function ProductPage({
               {/* Price */}
               <div className="mt-6">
                 <p className="text-4xl font-bold text-gray-900">
-                  ${product.price.toFixed(2)}
+                  {format(product.price)}
                 </p>
 
                 <p className="text-sm mt-2">
@@ -264,7 +266,7 @@ export default function ProductPage({
                   </h3>
 
                   <p className="text-sm text-gray-500 mt-1">
-                    On orders above $50.
+                    On orders above {format(5000)}.
                   </p>
                 </div>
 
