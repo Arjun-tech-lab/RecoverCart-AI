@@ -1,21 +1,25 @@
-function analyzeReason(signals, expectedCartValue) {
-  if (
-    signals.cartValue > expectedCartValue * 1.3 &&
-    signals.timeSpent >= 10 &&
-    !signals.checkoutClicked
-  ) {
-    return "price";
+function analyzeReason(signals) {
+  if (signals.itemRemoved) {
+    return "price_hesitation";
+  }
+  
+  if (signals.checkoutHovered) {
+    return "trust_payment";
+  }
+  
+  if (signals.quantityChanges >= 3) {
+    return "uncertainty";
   }
 
-  if (signals.shippingClicks === 0 && signals.timeSpent >= 20) {
-    return "shipping";
+  if (signals.shippingClicks >= 2) {
+    return "shipping_confusion";
+  }
+  
+  if (signals.idleTime >= 15) {
+    return "deciding";
   }
 
-  if (!signals.checkoutClicked && signals.timeSpent >= 25) {
-    return "trust";
-  }
-
-  return "deciding";
+  return "deciding"; 
 }
 
 module.exports = analyzeReason;

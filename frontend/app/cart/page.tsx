@@ -8,9 +8,10 @@ import { Footer } from '@/components/layout/Footer';
 import { CartList } from '@/components/cart/CartList';
 import { ShippingOptions } from '@/components/cart/ShippingOptions';
 import { OrderSummary } from '@/components/cart/OrderSummary';
-import { HesitationRecoveryModal } from '@/components/recovery/HesitationRecoveryModal';
+import { CheckoutAssistant } from '@/components/recovery/CheckoutAssistant';
 
 import { useCartStore } from '@/lib/store';
+import { useOrderTotals } from '@/lib/useOrderTotals';
 
 import {
   checkHesitation,
@@ -22,35 +23,38 @@ export default function CartPage() {
     (state) => state.items
   );
 
-  const getTotalPrice =
+  const { subtotal } = useOrderTotals();
+
+  const shippingOption =
     useCartStore(
       (state) =>
-        state.getTotalPrice
+        state.shippingOption
     );
 
-  const subtotal =
-    getTotalPrice();
+  const setShippingOption =
+    useCartStore(
+      (state) =>
+        state.setShippingOption
+    );
 
-  const shippingOption = useCartStore((state) => state.shippingOption);
-  const setShippingOption = useCartStore((state) => state.setShippingOption);
-  const recoveryData = useCartStore((state) => state.recoveryData);
-  const setRecoveryData = useCartStore((state) => state.setRecoveryData);
+  const recoveryData =
+    useCartStore(
+      (state) =>
+        state.recoveryData
+    );
+
+  const setRecoveryData =
+    useCartStore(
+      (state) =>
+        state.setRecoveryData
+    );
 
   /* ---------------- STATE ---------------- */
 
-  const [timeOnCart,
-    setTimeOnCart] =
-    useState(0);
-
   const [
-    showRecoveryModal,
-    setShowRecoveryModal,
-  ] = useState(false);
-
-  const [
-    popupDismissed,
-    setPopupDismissed,
-  ] = useState(false);
+    timeOnCart,
+    setTimeOnCart,
+  ] = useState(0);
 
   const [
     quantityChanges,
@@ -67,14 +71,17 @@ export default function CartPage() {
     setHesitationScore,
   ] = useState(0);
 
-  const [reason,
-    setReason] =
-    useState('');
-
   const [
     loadingRecovery,
     setLoadingRecovery,
   ] = useState(false);
+
+  const [
+    lastInteractionTime,
+    setLastInteractionTime,
+  ] = useState(
+    Date.now()
+  );
 
   /* ---------------- REFS ---------------- */
 
@@ -83,6 +90,9 @@ export default function CartPage() {
 
   const lastPopupRef =
     useRef(false);
+
+  const lastCheckRef = useRef(0);
+  const lastInterventionTimeRef = useRef(0);
 
   const previousQtyRef =
     useRef(
@@ -130,7 +140,7 @@ export default function CartPage() {
     const interval =
       setInterval(() => {
         runRecoveryCheck();
-      }, 30000);
+      }, 500);
 
     return () =>
       clearInterval(
@@ -143,46 +153,11 @@ export default function CartPage() {
     shippingClicks,
   ]);
 
-  /* ---------------- FIRST CHECK AFTER 15s ---------------- */
-
-  useEffect(() => {
-    if (
-      timeOnCart >= 15 &&
-      !popupDismissed &&
-      !showRecoveryModal &&
-      items.length > 0
-    ) {
-      runRecoveryCheck();
-    }
-  }, [
-    timeOnCart,
-    popupDismissed,
-    showRecoveryModal,
-    items.length,
-  ]);
-
-  /* ---------------- RESET DISMISS WHEN USER ACTIVE ---------------- */
-
-  useEffect(() => {
-    if (
-      quantityChanges > 0 ||
-      shippingClicks > 0
-    ) {
-      setPopupDismissed(
-        false
-      );
-    }
-  }, [
-    quantityChanges,
-    shippingClicks,
-  ]);
-
   /* ---------------- SHIPPING ---------------- */
 
   const handleShippingChange =
     (
-      option:
-        any
+      option: any
     ) => {
       setShippingOption(
         option
@@ -191,6 +166,10 @@ export default function CartPage() {
       setShippingClicks(
         (prev) =>
           prev + 1
+      );
+
+      setLastInteractionTime(
+        Date.now()
       );
     };
 
@@ -217,6 +196,10 @@ export default function CartPage() {
         (prev) =>
           prev + 1
       );
+
+      setLastInteractionTime(
+        Date.now()
+      );
     }
 
     previousQtyRef.current =
@@ -227,18 +210,27 @@ export default function CartPage() {
 
   const runRecoveryCheck =
     async () => {
+      const now =
+        Date.now();
+
+      const idleSeconds =
+        (
+          now -
+          lastInteractionTime
+        ) /
+        1000;
+
+      /* user still active */
+      if (idleSeconds < 5 && !useCartStore.getState().metrics.checkoutHovered) return;
+
+      /* Stop checking if an offer is already applied */
+      if (useCartStore.getState().recoveryData?.isApplied) return;
+
+      /* avoid spam */
+      if (now - lastCheckRef.current < 500) return;
+
       if (
         isCheckingRef.current
-      )
-        return;
-
-      if (
-        popupDismissed
-      )
-        return;
-
-      if (
-        showRecoveryModal
       )
         return;
 
@@ -251,6 +243,9 @@ export default function CartPage() {
         isCheckingRef.current =
           true;
 
+        lastCheckRef.current =
+          now;
+
         setLoadingRecovery(
           true
         );
@@ -260,16 +255,22 @@ export default function CartPage() {
             {
               timeSpent:
                 timeOnCart,
+              idleTime:
+                idleSeconds,
               quantityChanges,
-              shippingClicks,
+              shippingClicks: useCartStore.getState().metrics.shippingToggles,
               itemRemoved:
-                false,
+                useCartStore.getState().metrics.itemsRemoved > 0,
               checkoutClicked:
                 false,
+              checkoutHovered:
+                useCartStore.getState().metrics.checkoutHovered,
               cartValue:
                 subtotal,
               itemCount:
                 items.length,
+              idleTime:
+                idleSeconds,
             }
           );
 
@@ -288,33 +289,33 @@ export default function CartPage() {
               .popup ||
             false;
 
+          const reason =
+            triggerRes
+              .data
+              .reason ||
+            'deciding';
+
           setHesitationScore(
             score
           );
 
-          if (
-            popup &&
-            !lastPopupRef.current
-          ) {
-            setReason('');
+          /* Auto sidebar recovery */
+          const timeSinceLastIntervention = now - lastInterventionTimeRef.current;
+          
+          if (popup && timeSinceLastIntervention > 2000) {
+            const plan = await getRecoveryPlan({
+              reason,
+              cartValue: subtotal,
+            });
 
-            setRecoveryData(
-              null
-            );
-
-            setShowRecoveryModal(
-              true
-            );
-
-            lastPopupRef.current =
-              true;
-          }
-
-          if (
-            !popup
-          ) {
-            lastPopupRef.current =
-              false;
+            if (plan?.success) {
+              setRecoveryData({
+                ...plan.data,
+                reason,
+                idleTime: idleSeconds,
+              });
+              lastInterventionTimeRef.current = now;
+            }
           }
         }
       } catch (
@@ -334,110 +335,20 @@ export default function CartPage() {
       }
     };
 
-  /* ---------------- USER SELECTS REASON ---------------- */
-
- const handleReasonSelect = async (
-  selectedReason: string
-) => {
-  try {
-    const recoveryRes =
-      await getRecoveryPlan({
-        reason: selectedReason,
-        cartValue: subtotal,
-      });
-
-    if (recoveryRes?.success) {
-      const freshData =
-        recoveryRes.data;
-
-      console.log(
-        'UPDATED PLAN:',
-        freshData
-      );
-
-      setRecoveryData(null);
-
-      setTimeout(() => {
-        setRecoveryData(
-          freshData
-        );
-      }, 50);
-    }
-  } catch (error) {
-    console.error(error);
-  }
-};
   /* ---------------- RENDER ---------------- */
 
   return (
     <>
       <Header />
 
-      <HesitationRecoveryModal
-        isOpen={
-          showRecoveryModal
-        }
-        onClose={() => {
-          setShowRecoveryModal(
-            false
-          );
-
-          setPopupDismissed(
-            true
-          );
-
-          setRecoveryData(
-            null
-          );
-        }}
-        onAccept={() => {
-          setShowRecoveryModal(
-            false
-          );
-
-          setPopupDismissed(
-            true
-          );
-        }}
-
-        hesitationScore={
-          hesitationScore
-        }
-        timeOnCart={
-          timeOnCart
-        }
-        subtotal={
-          subtotal
-        }
-        shippingOption={
-          shippingOption
-        }
-        recoveryData={
-          recoveryData
-        }
-        reason={
-          reason
-        }
-        onReasonSelect={
-          handleReasonSelect
-        }
-      />
-
       <main className="min-h-screen bg-white">
 
-        {/* Floating Loader */}
-        {loadingRecovery &&
-          !showRecoveryModal && (
-            <div className="fixed top-24 right-6 z-50 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs text-gray-600 shadow-md">
-              Checking...
-            </div>
-          )}
+      
 
-        <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="mx-auto max-w-7xl px-4 py-12">
 
-          {/* Heading */}
           <div className="mb-10">
-            <p className="text-sm text-gray-500 mb-2">
+            <p className="mb-2 text-sm text-gray-500">
               Premium Shopping Experience
             </p>
 
@@ -446,10 +357,9 @@ export default function CartPage() {
             </h1>
           </div>
 
-          {/* Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
 
-            {/* Left */}
+            {/* LEFT */}
             <div className="lg:col-span-2">
               <CartList />
 
@@ -463,16 +373,23 @@ export default function CartPage() {
               />
             </div>
 
-            {/* Right */}
-            <div className="lg:col-span-1">
-              <OrderSummary
+            {/* RIGHT */}
+            <div className="space-y-4 lg:col-span-1">
+
+              <CheckoutAssistant
                 recoveryData={
                   recoveryData
                 }
-                shippingOption={
-                  shippingOption
+                hesitationScore={
+                  hesitationScore
+                }
+                loading={
+                  loadingRecovery
                 }
               />
+
+              <OrderSummary />
+
             </div>
 
           </div>

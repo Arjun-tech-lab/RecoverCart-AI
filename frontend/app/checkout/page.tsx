@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useCartStore } from '@/lib/store';
+import { useOrderTotals } from '@/lib/useOrderTotals';
 import { useCurrency } from '@/lib/useCurrency';
 import { ArrowLeft, Check } from 'lucide-react';
 
@@ -12,8 +13,8 @@ type Step = 'shipping' | 'payment' | 'confirmation';
 
 export default function CheckoutPage() {
   const items = useCartStore((state) => state.items);
-  const getOrderTotals = useCartStore((state) => state.getOrderTotals);
   const clearCart = useCartStore((state) => state.clearCart);
+  const { subtotal, discount, shipping, tax, total } = useOrderTotals();
   const { format } = useCurrency();
 
   const [step, setStep] = useState<Step>('shipping');
@@ -34,8 +35,6 @@ export default function CheckoutPage() {
     cardExpiry: '',
     cardCvc: '',
   });
-
-  const { subtotal, discount, shipping, tax, total } = getOrderTotals();
 
   if (items.length === 0 && step !== 'confirmation') {
     return (

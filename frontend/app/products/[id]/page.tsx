@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -23,15 +23,16 @@ import {
 } from 'lucide-react';
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function ProductPage({
   params,
 }: ProductPageProps) {
-  const product = products.find((p) => p.id === params.id);
+  const resolvedParams = use(params);
+  const product = products.find((p) => p.id === resolvedParams.id);
 
   const addItem = useCartStore((state) => state.addItem);
   const { format } = useCurrency();

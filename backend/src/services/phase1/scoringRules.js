@@ -1,24 +1,16 @@
-function calculateScore(signals, expectedCartValue) {
+function calculateScore(signals) {
   let score = 0;
 
-  if (signals.timeSpent >= 20) score += 30;
-
-  if (signals.quantityChanges >= 2) score += 20;
-
-  if (signals.shippingClicks === 0) score += 15;
-
-  if (signals.timeSpent >= 15 && !signals.checkoutClicked) score += 20;
-
-  if (signals.itemRemoved) score += 15;
-
-  // Dynamic Price Shock Rule
-  if (
-    signals.cartValue > expectedCartValue * 1.3 &&
-    signals.timeSpent >= 10 &&
-    !signals.checkoutClicked
-  ) {
-    score += 25;
+  if (signals.idleTime >= 25) {
+    score += 35;
+  } else if (signals.idleTime >= 15) {
+    score += 20;
   }
+
+  if (signals.shippingClicks >= 2) score += 25;
+  if (signals.itemRemoved) score += 30;
+  if (signals.checkoutHovered) score += 30;
+  if (signals.quantityChanges >= 3) score += 20;
 
   return score;
 }

@@ -1,39 +1,48 @@
-function offerSelector(reason, cartValue) {
-  if (reason === "price") {
-    if (cartValue >= 10000) {
+function offerSelector(reason) {
+  switch (reason) {
+    case 'price_hesitation':
       return {
-        type: "discount",
-        percent: 10,
-        label: "SAVE10 - 10% OFF"
+        type: "complex",
+        discount_percent: 5,
+        free_shipping: false,
+        label: "AI Price Optimization"
       };
-    }
-
-    return {
-      type: "discount",
-      percent: 5,
-      label: "SAVE5 - 5% OFF"
-    };
+    case 'shipping_confusion':
+      return {
+        type: "complex",
+        discount_percent: 0,
+        free_shipping: false,
+        label: "Delivery Guidance"
+      };
+    case 'trust_payment':
+      return {
+        type: "complex",
+        discount_percent: 0,
+        free_shipping: false,
+        label: "Checkout Protection"
+      };
+    case 'uncertainty':
+      return {
+        type: "complex",
+        discount_percent: 10,
+        free_shipping: true,
+        label: "Value Optimization"
+      };
+    case 'deciding':
+      return {
+        type: "complex",
+        discount_percent: 10,
+        free_shipping: false,
+        label: "Special Reserved Offer"
+      };
+    default:
+      return {
+        type: "complex",
+        discount_percent: 5,
+        free_shipping: false,
+        label: "AI Recovery Intervention"
+      };
   }
-
-  if (reason === "shipping") {
-    return {
-      type: "free_shipping",
-      value: true,
-      label: "Free Shipping Today"
-    };
-  }
-
-  if (reason === "trust") {
-    return {
-      type: "trust",
-      label: "100% Secure Checkout"
-    };
-  }
-
-  return {
-    type: "save_cart",
-    label: "Save Cart"
-  };
 }
 
 module.exports = offerSelector;

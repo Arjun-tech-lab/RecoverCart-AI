@@ -1,24 +1,20 @@
 'use client';
-
+import { useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { useCartStore } from '@/lib/store';
 import { useCurrency } from '@/lib/useCurrency';
+import { useOrderTotals } from '@/lib/useOrderTotals';
+import { useCartStore } from '@/lib/store';
 
 export function OrderSummary() {
-  const items = useCartStore(
-    (state) => state.items
-  );
-  const getOrderTotals = useCartStore((state) => state.getOrderTotals);
   const recoveryData = useCartStore((state) => state.recoveryData);
   const { format } = useCurrency();
+  const { subtotal, shipping, discount, tax, total } = useOrderTotals();
 
-  const { subtotal, discount, shipping, tax, total } = getOrderTotals();
+  const offerLabel = recoveryData?.isApplied ? (recoveryData?.offer?.label || '') : '';
+  const bonusGift = recoveryData?.isApplied ? recoveryData?.offer?.gift : null;
 
-  /* ---------------- LABEL ---------------- */
-
-  const offerLabel =
-    recoveryData?.offer?.label || '';
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   return (
     <div className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-6">
@@ -38,19 +34,25 @@ export function OrderSummary() {
           </span>
 
           <span className="font-medium text-gray-900">
-            {format(subtotal)}
+            {format(
+              subtotal
+            )}
           </span>
         </div>
 
         {/* Discount */}
-        {discount > 0 && (
+        {discount >
+          0 && (
           <div className="flex justify-between text-sm text-green-600">
             <span>
               Discount
             </span>
 
             <span>
-              -{format(discount)}
+              -
+              {format(
+                discount
+              )}
             </span>
           </div>
         )}
@@ -62,11 +64,26 @@ export function OrderSummary() {
           </span>
 
           <span className="font-medium text-gray-900">
-            {shipping === 0
+            {shipping ===
+            0
               ? 'Free'
-              : format(shipping)}
+              : format(
+                  shipping
+                )}
           </span>
         </div>
+
+        {/* Bonus Gift */}
+        {bonusGift && (
+          <div className="flex justify-between text-sm text-indigo-600">
+            <span>
+              Bonus Gift
+            </span>
+            <span className="font-medium">
+              Free
+            </span>
+          </div>
+        )}
 
         {/* Tax */}
         <div className="flex justify-between text-sm">
@@ -75,7 +92,9 @@ export function OrderSummary() {
           </span>
 
           <span className="font-medium text-gray-900">
-            {format(tax)}
+            {format(
+              tax
+            )}
           </span>
         </div>
 
@@ -88,7 +107,9 @@ export function OrderSummary() {
         </span>
 
         <span className="text-2xl font-bold text-gray-900">
-          {format(total)}
+          {format(
+            total
+          )}
         </span>
       </div>
 
@@ -102,6 +123,17 @@ export function OrderSummary() {
       {/* CTA */}
       <Link
         href="/checkout"
+        onMouseEnter={() => {
+          hoverTimeoutRef.current = setTimeout(() => {
+            useCartStore.getState().setCheckoutHovered(true);
+          }, 2000);
+        }}
+        onMouseLeave={() => {
+          if (hoverTimeoutRef.current) {
+            clearTimeout(hoverTimeoutRef.current);
+          }
+          useCartStore.getState().setCheckoutHovered(false);
+        }}
         className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-black py-3 font-medium text-white transition hover:bg-gray-800"
       >
         Proceed to Checkout
@@ -116,7 +148,7 @@ export function OrderSummary() {
         Continue Shopping
       </Link>
 
-      {/* Footer trust text */}
+      {/* Footer */}
       <p className="mt-4 text-center text-xs text-gray-500">
         Secure checkout • Easy returns • COD available
       </p>

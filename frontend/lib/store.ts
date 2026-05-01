@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ShippingType = 'standard' | 'express' | null;
+export type ShippingType = 'standard' | 'express';
 
 export interface CartItem {
   id: string;
@@ -12,8 +12,13 @@ export interface CartItem {
 
 export interface CartStore {
   items: CartItem[];
-  shippingOption: ShippingType;
+  shippingOption: ShippingType | null;
   recoveryData: any | null;
+  metrics: {
+    shippingToggles: number;
+    itemsRemoved: number;
+    checkoutHovered: boolean;
+  };
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -21,13 +26,7 @@ export interface CartStore {
   getTotalPrice: () => number;
   setShippingOption: (option: ShippingType) => void;
   setRecoveryData: (data: any | null) => void;
-  getOrderTotals: () => {
-    subtotal: number;
-    discount: number;
-    shipping: number;
-    tax: number;
-    total: number;
-  };
+  setCheckoutHovered: (hovered: boolean) => void;
 }
 
 export interface AnalyticsData {
@@ -56,6 +55,11 @@ export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
   shippingOption: null,
   recoveryData: null,
+  metrics: {
+    shippingToggles: 0,
+    itemsRemoved: 0,
+    checkoutHovered: false,
+  },
   addItem: (item) =>
     set((state) => {
       const existingItem = state.items.find((i) => i.id === item.id);
@@ -71,6 +75,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
   removeItem: (id) =>
     set((state) => ({
       items: state.items.filter((i) => i.id !== id),
+      metrics: { ...state.metrics, itemsRemoved: state.metrics.itemsRemoved + 1 }
     })),
   updateQuantity: (id, quantity) =>
     set((state) => ({
@@ -81,43 +86,14 @@ export const useCartStore = create<CartStore>((set, get) => ({
     const state = get();
     return state.items.reduce((total, item) => total + item.price * item.quantity, 0);
   },
-  setShippingOption: (option) => set({ shippingOption: option }),
+  setShippingOption: (option) =>
+    set((state) => ({
+      shippingOption: option,
+      metrics: { ...state.metrics, shippingToggles: state.metrics.shippingToggles + 1 }
+    })),
   setRecoveryData: (data) => set({ recoveryData: data }),
-  getOrderTotals: () => {
-    const state = get();
-    const subtotal = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
-
-    let discount = 0;
-    let shipping = 99; // default standard
-
-    if (state.shippingOption === 'standard') {
-      shipping = 99;
-    }
-    if (state.shippingOption === 'express') {
-      shipping = 199;
-    }
-    if (subtotal >= 5000) {
-      shipping = 0;
-    }
-
-    const offer = state.recoveryData?.offer || null;
-    if (offer?.type === 'discount_percent' || offer?.type === 'discount') {
-      const percent = Number(offer.value || offer.percent || 0);
-      discount = subtotal * (percent / 100);
-    }
-    if (offer?.type === 'flat_discount') {
-      discount = Number(offer.value || 0);
-    }
-    if (offer?.type === 'free_shipping') {
-      shipping = 0;
-    }
-
-    const finalSubtotal = subtotal - discount;
-    const tax = finalSubtotal * 0.05;
-    const total = finalSubtotal + shipping + tax;
-
-    return { subtotal, discount, shipping, tax, total };
-  },
+  setCheckoutHovered: (hovered) =>
+    set((state) => ({ metrics: { ...state.metrics, checkoutHovered: hovered } })),
 }));
 
 // Analytics Store
