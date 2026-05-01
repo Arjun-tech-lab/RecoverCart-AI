@@ -82,7 +82,7 @@ npm run dev
 *   **Arjun Indavara** - Product Thinking & Backend Engineering
 *   **Ullas** - Frontend Setup & UI Integration
 
-Github Link:https://github.com/Arjun-tech-lab/RecoverCart-AI 
+
 
 
 
