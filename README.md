@@ -7,13 +7,13 @@
 ---
 
 ## 🎥 Demo Video
-🔗 **[Insert Link to YouTube/Google Drive Demo Video Here]**
+Demo video link: https://drive.google.com/file/d/1XhQ2ZmZuCAHRjbmdJaxNLSFRAhmBxVmm/view?usp=sharing
 
 ---
 
 ## 🚀 Problem Statement
 
-Cart abandonment averages **70%** across the e-commerce industry. The standard legacy solution is the "abandoned cart email"—which is inherently flawed because it attempts to recover a user whose intent has already cooled (usually 24 hours later). 
+Cart abandonment averages 70% across the e-commerce industry. The standard legacy solution is the "abandoned cart email" which is inherently flawed because it attempts to recover a user whose intent has already cooled (usually 24 hours later). 
 
 Alternatively, stores use simplistic "exit-intent" popups that blindly offer a 10% discount the second a mouse moves toward the top of the screen, which trains users to wait for discounts and destroys profit margins.
 
@@ -81,5 +81,9 @@ npm run dev
 ## 👥 Team
 *   **Arjun Indavara** - Product Thinking & Backend Engineering
 *   **Ullas** - Frontend Setup & UI Integration
+
+Github Link:https://github.com/Arjun-tech-lab/RecoverCart-AI 
+
+
 
 *Built for Kasparro AI Commerce Infrastructure.*
